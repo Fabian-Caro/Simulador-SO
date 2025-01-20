@@ -74,12 +74,12 @@ class Memoria:
     def generar_nombre_pagina(self, id_proceso, numero_pagina):
         return f"P{numero_pagina}{id_proceso}"
  
-    
     def agregar_paginas_a_memoria_principal(self, proceso):
         print(f"Tamaño de memoria: {proceso.get_tamano_proceso()}")
         agregado_en_principal = 0
         paginas_en_pricipal = 2
         id_pagina = 1
+
         while agregado_en_principal < paginas_en_pricipal:
             fila_memoria_principal = random.randint(0, 3)
             columna_memoria_principal = random.randint(0, 3)
@@ -103,6 +103,7 @@ class Memoria:
         paginas_en_pricipal = 2
         paginas_en_virtual = valor - paginas_en_pricipal
         id_pagina = 3
+
         while agregado_en_virtual < paginas_en_virtual:
             fila_memoria_virtual = random.randint(0,7)
             columna_memoria_virtual = random.randint(0,7)

@@ -58,6 +58,7 @@ def crear_proceso():
             return redirect(url_for('crear_proceso'))
         
         prioridad = int(request.form.get('prioridad',0))
+
         recurso_seleccionado =  request.form.getlist('recursos')
 
         recursos_necesarios = []
