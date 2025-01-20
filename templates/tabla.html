@@ -5,6 +5,7 @@
             <th>ID</th>
             <th>Nombre</th>
             <th>Tamaño</th>
+            <th>Prioridad</th>
             <th>Recursos</th>
         </tr>
     </thead>
@@ -15,6 +16,7 @@
             <td>{{ proceso.get_id_proceso() }}</td>
             <td>{{ proceso.get_nombre_proceso() }}</td>
             <td>{{ proceso.get_tamano_proceso() }}</td>
+            <td>{{ proceso.get_prioridad() }}</td>
             <td>
                 {% for recurso in proceso.get_recursos_necesarios() %}
                 {% if recurso.get_proceso() == proceso %}

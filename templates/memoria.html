@@ -20,12 +20,8 @@
                         <tr>
                             {% for j in range(4) %}
                             <td scope="col">
-                                {% if memoria_principal[i][j] is string %}
+                                {% if memoria_principal[i][j] != "" %}
                                     {{ memoria_principal[i][j] }} <!-- Muestra "SO" directamente -->
-                                {% else %}
-                                    {{ memoria_principal[i][j].get_nombre_proceso()[0] }}{{
-                                        memoria_principal[i][j].get_id_proceso()
-                                    }}
                                 {% endif %}
                             </td>
                             {% endfor %}
@@ -43,9 +39,7 @@
                             {% for j in range(8) %}
                             <td scope="col">
                                 {% if memoria_virtual[i][j] != "" %}
-                                    {{ memoria_virtual[i][j].get_nombre_proceso()[0] }}{{
-                                        memoria_virtual[i][j].get_id_proceso()
-                                    }}
+                                    {{ memoria_virtual[i][j] }}
                                 {% endif %}
                             </td>
                             {% endfor %}

@@ -1,31 +1,48 @@
-from flask import Flask, request, render_template, redirect, url_for, jsonify
+from flask import Flask, flash, request, render_template, redirect, url_for, jsonify
 from modelo.Procesos import Procesos
 from modelo.Recurso import recursos as listaRecursos
 from modelo.Bloqueados import Bloqueados
 from modelo.Memoria import Memoria
 
 app = Flask(__name__)
+app.secret_key = '1234'
 
 memoria_instance = Memoria()
 
 cola_nuevos = []
 cola_listos = []
+cola_prioridad1 = []
+cola_bloqueados = []
 proceso_ejecucion = None
 proceso_bloqueado = None
 terminados = []
+proceso_creado = []
 
 @app.route('/', methods=['GET'])
 def index():
     bloqueados = Bloqueados.bloqueados()
     recursos = listaRecursos
 
-    return render_template('index.html', procesos_nuevos=cola_nuevos, procesos_listos=cola_listos, proceso_ejecucion=proceso_ejecucion, 
-                           proceso_bloqueado=proceso_bloqueado, recursos=recursos, terminados=terminados, bloqueados=bloqueados)
+    return render_template(
+        'index.html',
+        procesos_nuevos=cola_nuevos,
+        procesos_listos=cola_listos, 
+        procesos_prioridad1 = cola_prioridad1,
+        proceso_ejecucion=proceso_ejecucion, 
+        proceso_bloqueado=proceso_bloqueado, 
+        recursos=recursos, 
+        proceso_creado = proceso_creado,
+        terminados=terminados,
+        bloqueados=bloqueados)  # Devuelve la vista cuando es un GET
 
 @app.route('/crear_proceso', methods=['GET', 'POST'])
 def crear_proceso():
     bloqueados = Bloqueados.bloqueados()
     recursos = listaRecursos
+    
+    memoria_disponible = memoria_instance.calcular_memoria_disponible(memoria_instance.memoria_virtual)
+    
+    max_tamano = min(20, memoria_disponible // 4)
     
     siguiente_id = id_autoincremental()
 
@@ -35,6 +52,13 @@ def crear_proceso():
         id_proceso = request.form.get('id')
         nombre = request.form.get('nombre')
         tamano = int(request.form.get('tamano'))
+        
+        if tamano > max_tamano:
+            flash("El proceso no se pudo crear. Tamaño insuficiente.", "danger")
+            return redirect(url_for('crear_proceso'))
+        
+        prioridad = int(request.form.get('prioridad',0))
+
         recurso_seleccionado =  request.form.getlist('recursos')
 
         recursos_necesarios = []
@@ -48,21 +72,32 @@ def crear_proceso():
         for recurso in recursos:
             print(f"Recursos: {recurso}")
 
-        nuevo_proceso = Procesos(id_proceso, nombre, tamano, recursos_necesarios)
+        nuevo_proceso = Procesos(id_proceso, nombre, tamano, prioridad, recursos_necesarios,"nuevo")
         
         if not memoria_instance.memoria_disponible(memoria_instance.memoria_principal):
-            print("No hay espacio disponible en la memoria principal. No se creará el proceso.")
+            flash("No hay espacio disponible en la memoria principal. No se creará el proceso.", "danger")
             return redirect(url_for('crear_proceso'))
         
         cola_nuevos.append(nuevo_proceso)
-        
+        proceso_creado.append(nuevo_proceso)
         agregar_a_memoria(nuevo_proceso)
 
+        flash("Proceso creado exitosamente.", "success")
         return redirect(url_for('crear_proceso'))
 
-    return render_template('creacion.html', siguiente_id = siguiente_id, procesos_nuevos=cola_nuevos, procesos_listos=cola_listos, 
-                           proceso_ejecucion=proceso_ejecucion, proceso_bloqueado=proceso_bloqueado, recursos=recursos, terminados=terminados,
-                           bloqueados=bloqueados)
+    return render_template(
+        'creacion.html', 
+        siguiente_id = siguiente_id,        
+        procesos_nuevos=cola_nuevos,
+        procesos_listos=cola_listos, 
+        procesos_prioridad1 = cola_prioridad1,
+        proceso_ejecucion=proceso_ejecucion, 
+        proceso_bloqueado=proceso_bloqueado, 
+        recursos=recursos, 
+        proceso_creado = proceso_creado,
+        terminados=terminados,
+        bloqueados=bloqueados,
+        max_tamano = max_tamano)  # Devuelve la vista cuando es un GET)
 
 @app.route('/modelo', methods=['GET', 'POST'])
 def modelo():
@@ -72,8 +107,16 @@ def modelo():
     if request.method == 'POST':
         ejecutar_proceso()
 
-    return render_template('modelo.html', procesos_listos=cola_listos, proceso_ejecucion=proceso_ejecucion, proceso_bloqueado=proceso_bloqueado, 
-                           recursos=recursos, terminados=terminados, bloqueados=bloqueados)
+    return render_template('modelo.html',        
+        procesos_nuevos=cola_nuevos,
+        procesos_listos=cola_listos, 
+        procesos_prioridad1 = cola_prioridad1,
+        proceso_ejecucion=proceso_ejecucion, 
+        proceso_bloqueado=proceso_bloqueado, 
+        recursos=recursos, 
+        proceso_creado = proceso_creado,
+        terminados=terminados,
+        bloqueados=bloqueados)  # Devuelve la vista cuando es un GET)
 
 @app.route('/memoria', methods=['GET'])
 def memoria():
@@ -96,36 +139,33 @@ def agregar_a_memoria(nuevo_proceso):
     if not memoria_instance.agregar_paginas_a_memoria_virtual(nuevo_proceso):
         print("No se pudo agregar el proceso a la memoria virtual.")
 
+@app.route('/ejecutar_proceso', methods=['POST'])
 def ejecutar_proceso():
     global proceso_ejecucion
     de_nuevo_a_listo()
     if not proceso_ejecucion:
-        de_listos_a_ejecucion()
+        if Bloqueados.interbloqueados:
+            romper_interbloqueo()
+        else:
+            de_listos_a_ejecucion()
     else:
-        proceso_ejecucion = enviar_a_listo_o_bloqueado_o_terminado()
+        if cola_prioridad1 and proceso_ejecucion.get_prioridad()==0 and cola_prioridad1[0].get_prioridad()==2:
+            expulsar_un_proceso_e_ingresar_otro() # envia el proceso en ejecucion a listo sin descontar el tamano
+        else:
+            proceso_ejecucion = enviar_a_listo_o_bloqueado_o_terminado()
 
     Bloqueados.mostrar_estado_colas(terminados)
     verificar_bloqueados()        
     return redirect(url_for('modelo'))
 
-@staticmethod
-def de_ejecucion_a_listos():
-    recursos_liberados = proceso_ejecucion.liberar_recursos()
-    recursos_necesarios = proceso_ejecucion.get_recursos_necesarios()
-    for recurso in recursos_liberados:
-        print(f"Recurso { recurso.get_nombre_recurso() } liberado.")
-
-    for recurso in recursos_necesarios:
-        print(f"Recurso { recurso.get_nombre_recurso() } necesarios.") 
-
-    cola_listos.append(proceso_ejecucion)
-
-@staticmethod
 def enviar_a_listo_o_bloqueado_o_terminado():
     global proceso_ejecucion
 
-    no_pasa_a_bloqueados,id_recursos = proceso_ejecucion.no_pasa_a_bloqueados()
-
+    no_pasa_a_bloqueados = True
+    
+    if proceso_ejecucion.get_prioridad()==0:
+        no_pasa_a_bloqueados,id_recursos = proceso_ejecucion.no_pasa_a_bloqueados()
+    
     if no_pasa_a_bloqueados:
         proceso_ejecucion.set_tamano_proceso(int (proceso_ejecucion.get_tamano_proceso())-2)
         if int (proceso_ejecucion.get_tamano_proceso()) > 0:
@@ -133,31 +173,69 @@ def enviar_a_listo_o_bloqueado_o_terminado():
         else:
             de_ejecucion_a_terminados()
     else:
-        for idR in id_recursos:
-            Bloqueados.enviar_a_cola_bloqueados(idR,proceso_ejecucion)
-
-        proceso_ejecucion.liberar_todos_recursos()
-
+        de_ejecucion_a_bloqueado(id_recursos)
     return None
 
-@staticmethod
+def de_ejecucion_a_listos():
+    recursos_liberados = proceso_ejecucion.liberar_recursos_L()
+    recursos_necesarios = proceso_ejecucion.get_recursos_necesarios()
+    proceso_ejecucion.set_estado("listo")
+    if proceso_ejecucion.get_prioridad()==0:
+        cola_listos.append(proceso_ejecucion)
+    else:
+        cola_prioridad1.append(proceso_ejecucion)
+
+def de_ejecucion_a_bloqueado(id_recursos):
+    proceso_ejecucion.liberar_recursos_B()
+    proceso_ejecucion.set_estado("bloqueado")
+    for idR in id_recursos:
+        Bloqueados.enviar_a_cola_bloqueados(idR,proceso_ejecucion)
+
+@app.route('/a_listos', methods=['POST'])
+def a_listos():
+    de_nuevo_a_listo()
+    return redirect(url_for('modelo'))
+
 def de_ejecucion_a_terminados():
+    proceso_ejecucion.set_estado("terminado")
     terminados.append(proceso_ejecucion)
     memoria_instance.limpiar_memoria(proceso_ejecucion)
     proceso_ejecucion.liberar_todos_recursos()
 
-@staticmethod
 def de_listos_a_ejecucion():
     global proceso_ejecucion
-    if cola_listos:
+    if cola_prioridad1:
+        proceso_ejecucion = cola_prioridad1.pop(0)
+    elif cola_listos:
         proceso_ejecucion = cola_listos.pop(0)
+    proceso_ejecucion.set_estado("ejecucion")
 
-@staticmethod
 def de_nuevo_a_listo():
     while cola_nuevos:
         proceso_nuevo = cola_nuevos.pop(0)
-        cola_listos.append(proceso_nuevo)
-        print(f"Proceso {proceso_nuevo.get_id_proceso()} movido a cola de listos.")
+        proceso_nuevo.set_estado("listo")
+        if proceso_nuevo.get_prioridad()==0:
+            cola_listos.append(proceso_nuevo)
+        elif proceso_nuevo.get_prioridad()==1:
+            cola_prioridad1.append(proceso_nuevo)
+        else:
+            cola_prioridad1.append(proceso_nuevo)
+        # print(f"Proceso {proceso_nuevo.get_id_proceso()} movido a cola de listos.")
+
+def romper_interbloqueo():
+    for i in Bloqueados.recursos_interbloqueos(Bloqueados.interbloqueados,cola_listos):
+        listaRecursos[i-1].set_proceso(None)
+    Bloqueados.interbloqueados = []
+
+def expulsar_un_proceso_e_ingresar_otro(): # envia el proceso en ejecucion a listo sin descontar el tamano
+    global proceso_ejecucion
+
+    cola_listos.insert(0,proceso_ejecucion)
+    proceso_ejecucion.liberar_recursos_B()
+    proceso_ejecucion.set_estado("listo")
+
+    proceso_ejecucion = cola_prioridad1.pop(0)
+    proceso_ejecucion.set_estado("ejecucion")
 
 def verificar_bloqueados():
     global proceso_bloqueado

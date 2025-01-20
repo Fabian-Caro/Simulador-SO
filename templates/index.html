@@ -18,16 +18,18 @@
                     <th>ID</th>
                     <th>Nombre</th>
                     <th>Tamaño</th>
+                    <th>Prioridad</th>
                     <th>Recursos en Uso</th>
                     <th>Estado</th>
                 </tr>
             </thead>
             <tbody>
-                {% for proceso in procesos_nuevos %}
+                {% for proceso in proceso_creado %}
                 <tr>
                     <td>{{ proceso.get_id_proceso() }}</td>
                     <td>{{ proceso.get_nombre_proceso() }}</td>
                     <td>{{ proceso.get_tamano_proceso() }}</td>
+                    <td>{{ proceso.get_prioridad() }}</td>
                     <td>
                         {% if proceso.get_recursos_necesarios != 0 %}
                         {% for recurso in proceso.get_recursos_necesarios() %}
@@ -35,89 +37,7 @@
                         {% endfor %}
                         {% endif %}
                     </td>
-                    <td>Nuevo</td>
-                </tr>
-                {% endfor %}
-                {% for proceso in procesos_listos %}
-                <tr>
-                    <td>{{ proceso.get_id_proceso() }}</td>
-                    <td>{{ proceso.get_nombre_proceso() }}</td>
-                    <td>{{ proceso.get_tamano_proceso() }}</td>
-                    <td>
-                        {% if proceso.get_recursos_necesarios != 0 %}
-                        {% for recurso in proceso.get_recursos_necesarios() %}
-                        {{ recurso.get_nombre_recurso() }},
-                        {% endfor %}
-                        {% endif %}
-                    </td>
-                    <td>Listo</td>
-                </tr>
-                {% endfor %}
-                {% if proceso_ejecucion %}
-                <tr>
-                    <td>{{ proceso_ejecucion.get_id_proceso() }}</td>
-                    <td>{{ proceso_ejecucion.get_nombre_proceso() }}</td>
-                    <td>{{ proceso_ejecucion.get_tamano_proceso() }}</td>
-                    <td>
-                        {% for recurso in proceso_ejecucion.get_recursos_necesarios() %}
-                        {{ recurso.get_nombre_recurso() }}
-                        {% endfor %}
-                    </td>
-                    <td>Ejecución</td>
-                </tr>
-                {% endif %}
-                {% if bloqueados.DiscoDuro %}
-                <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.DiscoDuro }}</td>
-                    <td>.</td>
-                    <td>.</td>
-                    <td>Bloqueado</td>
-                </tr>
-                {% endif %}
-                {% if bloqueados.TarjetaGrafica %}
-                <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.TarjetaGrafica }}</td>
-                    <td>.</td>
-                    <td>.</td>
-                    <td>Bloqueado</td>
-                </tr>
-                {% endif %}
-                {% if bloqueados.Impresora %}
-                <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.Impresora }}</td>
-                    <td>.</td>
-                    <td>.</td>
-                    <td>Bloqueado</td>
-                </tr>
-                {% endif %}
-                {% if bloqueados.Archivos %}
-                <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.Archivos }}</td>
-                    <td>.</td>
-                    <td>.</td>
-                    <td>Bloqueado</td>
-                </tr>
-                {% endif %}
-                {% if bloqueados.Red %}
-                <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.Red }}</td>
-                    <td>.</td>
-                    <td>.</td>
-                    <td>Bloqueado</td>
-                </tr>
-                {% endif %}
-                {% for proceso in terminados %}
-                <tr>
-                    <td>{{ proceso.get_id_proceso() }}</td>
-                    <td>{{ proceso.get_nombre_proceso() }}</td>
-                    <td>{{ proceso.get_tamano_proceso() }}</td>
-                    <td></td>
-                    <td>Terminado</td>
+                    <td>{{ proceso.get_estado() }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

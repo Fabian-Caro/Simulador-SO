@@ -58,24 +58,37 @@ class Memoria:
             if "" in fila:
                 return True
         return False
+    
+    def calcular_memoria_disponible(self, memoria_virtual):
+        contador = 0
+        for fila in memoria_virtual:
+            for columna in fila:
+                if columna == "":
+                    contador += 1
+        return contador
             
     def paginas(self, nuevo_proceso):
         auxiliar = nuevo_proceso.get_tamano_proceso()
         return (auxiliar + 2 - 1) // 2
- 
     
+    def generar_nombre_pagina(self, id_proceso, numero_pagina):
+        return f"P{numero_pagina}{id_proceso}"
+ 
     def agregar_paginas_a_memoria_principal(self, proceso):
         print(f"Tamaño de memoria: {proceso.get_tamano_proceso()}")
         agregado_en_principal = 0
         paginas_en_pricipal = 2
+        id_pagina = 1
+
         while agregado_en_principal < paginas_en_pricipal:
             fila_memoria_principal = random.randint(0, 3)
             columna_memoria_principal = random.randint(0, 3)
             
             if agregado_en_principal < paginas_en_pricipal:
                 if self.memoria_principal[fila_memoria_principal][columna_memoria_principal] == "":
-                    self.memoria_principal[fila_memoria_principal][columna_memoria_principal] = proceso
+                    self.memoria_principal[fila_memoria_principal][columna_memoria_principal] = f"P{proceso.get_id_proceso()}{id_pagina}"
                     agregado_en_principal += 1
+                    id_pagina += 1
                 else:
                     print(f"Posición ({fila_memoria_principal}, {columna_memoria_principal}) ocupada. Buscando otra posición...")
         
@@ -89,15 +102,17 @@ class Memoria:
         agregado_en_virtual = 0
         paginas_en_pricipal = 2
         paginas_en_virtual = valor - paginas_en_pricipal
-        
+        id_pagina = 3
+
         while agregado_en_virtual < paginas_en_virtual:
             fila_memoria_virtual = random.randint(0,7)
             columna_memoria_virtual = random.randint(0,7)
             
             if agregado_en_virtual < paginas_en_virtual:
                 if self.memoria_virtual[fila_memoria_virtual][columna_memoria_virtual] == "":
-                    self.memoria_virtual[fila_memoria_virtual][columna_memoria_virtual] = proceso
+                    self.memoria_virtual[fila_memoria_virtual][columna_memoria_virtual] = f"P{proceso.get_id_proceso()}{id_pagina}"
                     agregado_en_virtual += 1
+                    id_pagina += 1
                 else:
                     print(f"Posición ({fila_memoria_virtual}, {columna_memoria_virtual}) ocupada. Buscando otra posición...")
                      

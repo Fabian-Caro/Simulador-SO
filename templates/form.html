@@ -13,8 +13,17 @@
             </div>
             <div class="col-md-2">
                 <label for="inputTamano">Tamaño:</label>
-                <input type="number" id="inputTamano" name="tamano" min="1" class="form-control" required>
+                <input type="number" id="inputTamano" name="tamano" min="1" max="{{ max_tamano }}" class="form-control" required data-bs-toggle="tooltip" data-bs-placement="top" title="El tamaño máximo permitido es {{ max_tamano }}.">
             </div>
+        </div>
+        <label for="inputPrioridad">Prioridad:</label>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="sinPr" name="prioridad" value="1">
+            <label class="form-check-label" for="sinPr">sin preeminencia</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="sinPr" name="prioridad" value="2">
+            <label class="form-check-label" for="sinPr">con preeminencia</label>
         </div>
         <label for="inputRecurso">Recursos</label>
         {% for recurso in recursos %}
@@ -34,3 +43,11 @@
         <button type="submit" class="btn btn-primary">Crear</button>
     </form>
 </section>
+
+<script>
+    // Iniciar tooltips de Bootstrap
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>

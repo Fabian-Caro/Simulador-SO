@@ -12,12 +12,60 @@ Estados de procesos
 {% block content %}
 <div class="container" id="resultado">
     <section id="proceso-en-listo">
-        <form action="/modelo" method="post">
+        <form action="/ejecutar_proceso" method="post">
             <button id="botonDeEjecucion" type="submit" class="btn btn-success">Ejecutar Procesos</button>
         </form>
-        {% with titulo="Listos", procesos=procesos_listos %}
+        <!-- {% with titulo="Listos", procesos=procesos_prioridad1 %}
         {% include 'tabla.html' %}
-        {% endwith %}
+        {% endwith %} -->
+        <h2>Listo</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Tamaño</th>
+                    <th>Prioridad</th>
+                    <th>Recursos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for proceso in procesos_prioridad1 %}
+                <tr>
+                    <td>{{ proceso.get_id_proceso() }}</td>
+                    <td>{{ proceso.get_nombre_proceso() }}</td>
+                    <td>{{ proceso.get_tamano_proceso() }}</td>
+                    <td>{{ proceso.get_prioridad() }}</td>
+                    <td>
+                        {% for recurso in proceso.get_recursos_necesarios() %}
+                        {% if recurso.get_proceso() == proceso %}
+                        {{ recurso.get_nombre_recurso() }}: Asignado.
+                        {% else %}
+                        {{ recurso.get_nombre_recurso() }}: Necesario.
+                        {% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% for proceso in procesos_listos %}
+                <tr>
+                    <td>{{ proceso.get_id_proceso() }}</td>
+                    <td>{{ proceso.get_nombre_proceso() }}</td>
+                    <td>{{ proceso.get_tamano_proceso() }}</td>
+                    <td>{{ proceso.get_prioridad() }}</td>
+                    <td>
+                        {% for recurso in proceso.get_recursos_necesarios() %}
+                        {% if recurso.get_proceso() == proceso %}
+                        {{ recurso.get_nombre_recurso() }}: Asignado.
+                        {% else %}
+                        {{ recurso.get_nombre_recurso() }}: Necesario.
+                        {% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </section>
     <section id="proceso-en-ejecucion">
         <h2>Ejecución</h2>
@@ -27,6 +75,7 @@ Estados de procesos
                     <th>ID</th>
                     <th>Nombre del Proceso</th>
                     <th>Tamaño</th>
+                    <th>Prioridad</th>
                     <th>Recursos Asociados</th>
                 </tr>
             </thead>
@@ -36,6 +85,7 @@ Estados de procesos
                     <td>{{ proceso_ejecucion.get_id_proceso() }}</td>
                     <td>{{ proceso_ejecucion.get_nombre_proceso() }}</td>
                     <td>{{ proceso_ejecucion.get_tamano_proceso() }}</td>
+                    <td>{{ proceso_ejecucion.get_prioridad() }}</td>
                     <td>
                         {% for recurso in proceso_ejecucion.get_recursos_necesarios() %}
                         {% if not recurso.get_proceso() %}

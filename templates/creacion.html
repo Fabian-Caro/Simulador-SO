@@ -17,8 +17,8 @@ Creación de procesos
         </div>
         <div class="col">
             <section id="proceso-nuevo">
-                <form action="/modelo" method="post">
-                    <button id="botonEjecutar" type="submit" class="btn btn-success">Ejecutar Procesos</button>
+                <form action="/a_listos" method="post">
+                    <button id="botonEjecutar" type="submit" class="btn btn-success">Enviar a Listo</button>
                 </form>
                 {% with titulo="Nuevos", procesos=procesos_nuevos %}
                 {% include 'tabla.html' %}
