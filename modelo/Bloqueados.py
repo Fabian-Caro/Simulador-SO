@@ -17,11 +17,11 @@ class Bloqueados(object):
     @staticmethod
     def bloqueados():
         return {
-            'DiscoDuro': [proceso.get_nombre_proceso() for proceso in Bloqueados.recurso1],
-            'TarjetaGrafica': [proceso.get_nombre_proceso() for proceso in Bloqueados.recurso2],
-            'Impresora': [proceso.get_nombre_proceso() for proceso in Bloqueados.recurso3],
-            'Archivos': [proceso.get_nombre_proceso() for proceso in Bloqueados.recurso4],
-            'Red': [proceso.get_nombre_proceso() for proceso in Bloqueados.recurso5]
+            'DiscoDuro': [(proceso.get_nombre_proceso(), proceso.get_id_proceso()) for proceso in Bloqueados.recurso1],
+            'TarjetaGrafica': [(proceso.get_nombre_proceso(), proceso.get_id_proceso()) for proceso in Bloqueados.recurso2],
+            'Impresora': [(proceso.get_nombre_proceso(), proceso.get_id_proceso()) for proceso in Bloqueados.recurso3],
+            'Archivos': [(proceso.get_nombre_proceso(), proceso.get_id_proceso()) for proceso in Bloqueados.recurso4],
+            'Red': [(proceso.get_nombre_proceso(), proceso.get_id_proceso()) for proceso in Bloqueados.recurso5]
         }
     
     @staticmethod

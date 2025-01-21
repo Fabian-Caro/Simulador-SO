@@ -1,14 +1,14 @@
 import random
 
 class Procesos:
-    def __init__(self, id_proceso, nombre_proceso, tamano_proceso, prioridad, recursos_necesarios,estado):
+    def __init__(self, id_proceso, nombre_proceso, tamano_proceso, prioridad, recursos_necesarios,estado, veces_ejecutado):
         self.__id_proceso = id_proceso
         self.__nombre_proceso = nombre_proceso
         self.__tamano_proceso = tamano_proceso
         self.__prioridad = prioridad
-        # self.__recursos_asignados = recursos_asignados
         self.__recursos_necesarios = recursos_necesarios
         self.estado = estado
+        self.__veces_ejecutado = veces_ejecutado;
 
     def get_id_proceso(self):
         return self.__id_proceso
@@ -61,6 +61,12 @@ class Procesos:
     
     def set_estado(self,estado):
         self.estado = estado
+        
+    def get_veces_ejecutado(self):
+        return self.__veces_ejecutado
+    
+    def set_veces_ejecutado(self,veces_ejecutado):
+        self.__veces_ejecutado = veces_ejecutado
     
     def no_pasa_a_bloqueados(self):
         pasa_a_bloqueado = True

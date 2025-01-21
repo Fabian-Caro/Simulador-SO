@@ -3,6 +3,8 @@ from modelo.Procesos import Procesos
 from modelo.Recurso import recursos as listaRecursos
 from modelo.Bloqueados import Bloqueados
 from modelo.Memoria import Memoria
+import random
+
 
 app = Flask(__name__)
 app.secret_key = '1234'
@@ -17,6 +19,7 @@ proceso_ejecucion = None
 proceso_bloqueado = None
 terminados = []
 proceso_creado = []
+auxiliar = 1
 
 @app.route('/', methods=['GET'])
 def index():
@@ -41,8 +44,10 @@ def crear_proceso():
     recursos = listaRecursos
     
     memoria_disponible = memoria_instance.calcular_memoria_disponible(memoria_instance.memoria_virtual)
+    print(f"Memoria disponible: {memoria_disponible} KB")
     
-    max_tamano = min(20, memoria_disponible // 4)
+    max_tamano = 13
+    print(f"Tamaño máximo de proceso: {max_tamano} KB")
     
     siguiente_id = id_autoincremental()
 
@@ -68,11 +73,11 @@ def crear_proceso():
             if recurso:
                 recursos_necesarios.append(recurso)
 
-        print(f"ID: {id_proceso}, Nombre: {nombre}, Tamaño: {tamano}, ")
+        print(f"ID: {id_proceso}, Nombre: {nombre}, Tamaño: {tamano}, prioridad: {prioridad} veces ejecutado: 0")
         for recurso in recursos:
             print(f"Recursos: {recurso}")
 
-        nuevo_proceso = Procesos(id_proceso, nombre, tamano, prioridad, recursos_necesarios,"nuevo")
+        nuevo_proceso = Procesos(id_proceso, nombre, tamano, prioridad, recursos_necesarios,"nuevo", 0)
         
         if not memoria_instance.memoria_disponible(memoria_instance.memoria_principal):
             flash("No hay espacio disponible en la memoria principal. No se creará el proceso.", "danger")
@@ -148,15 +153,64 @@ def ejecutar_proceso():
             romper_interbloqueo()
         else:
             de_listos_a_ejecucion()
+            
+            if proceso_ejecucion:
+                proceso_ejecucion.set_veces_ejecutado(proceso_ejecucion.get_veces_ejecutado() + 1)
+                datos_proceso = [
+                    
+                    {
+                        "id_proceso": proceso_ejecucion.get_id_proceso(),
+                        "nombre_proceso": proceso_ejecucion.get_nombre_proceso(),
+                        "tamano_proceso": proceso_ejecucion.get_tamano_proceso(),
+                        "prioridad": proceso_ejecucion.get_prioridad(),
+                        ##"recursos_asignados": proceso_ejecucion.get_nombre_recursos(),
+                        "recursos_necesarios": [recurso.get_nombre_recurso() for recurso in proceso_ejecucion.get_recursos_necesarios()],
+                        "estado": proceso_ejecucion.get_estado(),
+                        "veces_ejecutado": proceso_ejecucion.get_veces_ejecutado()
+                    }
+                ]
+                print(f"Proceso {datos_proceso} en ejecución.")
+                buscar_en_memoria()
     else:
         if cola_prioridad1 and proceso_ejecucion.get_prioridad()==0 and cola_prioridad1[0].get_prioridad()==2:
             expulsar_un_proceso_e_ingresar_otro() # envia el proceso en ejecucion a listo sin descontar el tamano
         else:
             proceso_ejecucion = enviar_a_listo_o_bloqueado_o_terminado()
 
+    
     Bloqueados.mostrar_estado_colas(terminados)
     verificar_bloqueados()        
     return redirect(url_for('modelo'))
+
+def buscar_en_memoria():
+    global proceso_ejecucion
+    global auxiliar
+    nombre_pagina_buscada = f"P{proceso_ejecucion.get_id_proceso()[-2:]}{auxiliar}"
+    print(f"Verificando la página {nombre_pagina_buscada}...")
+
+    # Verificar si la página está en la memoria
+    estado = memoria_instance.buscar_en_memoria(nombre_pagina_buscada)
+    
+    if estado == "memoria_principal":
+        print(f"La página {nombre_pagina_buscada} está en la memoria principal.")
+    elif estado == "memoria_virtual":
+        print(f"La página {nombre_pagina_buscada} está en la memoria virtual.")
+        memoria_instance.agregar_pagina_necesitada(nombre_pagina_buscada, proceso_ejecucion)
+    else:
+        print(f"La página {nombre_pagina_buscada} NO está en ninguna memoria.")
+        # Agregar página a la lista de necesarias si no está en la memoria
+        
+    
+    # Procesar páginas que necesiten ser cargadas
+    memoria_instance.manejar_pagina_necesitada()
+
+    # Imprimir el estado de las memorias
+    memoria_principal = memoria_instance.obtener_memoria_principal()
+    memoria_virtual = memoria_instance.obtener_memoria_virtual()
+    print(f"Memoria principal: {memoria_principal}")
+    print(f"Memoria virtual: {memoria_virtual}")
+    auxiliar += 1
+
 
 def enviar_a_listo_o_bloqueado_o_terminado():
     global proceso_ejecucion
@@ -167,8 +221,9 @@ def enviar_a_listo_o_bloqueado_o_terminado():
         no_pasa_a_bloqueados,id_recursos = proceso_ejecucion.no_pasa_a_bloqueados()
     
     if no_pasa_a_bloqueados:
-        proceso_ejecucion.set_tamano_proceso(int (proceso_ejecucion.get_tamano_proceso())-2)
-        if int (proceso_ejecucion.get_tamano_proceso()) > 0:
+        tam_proceso = proceso_ejecucion.get_tamano_proceso()
+        tam_proceso = tam_proceso - proceso_ejecucion.get_veces_ejecutado()*2
+        if int (tam_proceso) > 0:
             de_ejecucion_a_listos()
         else:
             de_ejecucion_a_terminados()
@@ -204,11 +259,19 @@ def de_ejecucion_a_terminados():
 
 def de_listos_a_ejecucion():
     global proceso_ejecucion
+    
+    if not cola_prioridad1 and not cola_listos:
+        return
+    
     if cola_prioridad1:
         proceso_ejecucion = cola_prioridad1.pop(0)
     elif cola_listos:
         proceso_ejecucion = cola_listos.pop(0)
-    proceso_ejecucion.set_estado("ejecucion")
+    
+    if proceso_ejecucion:
+        proceso_ejecucion.set_estado("ejecucion")
+    else:
+        print("Error: No se pudo asignar un proceso a ejecución.")
 
 def de_nuevo_a_listo():
     while cola_nuevos:

@@ -34,7 +34,7 @@ Estados de procesos
                 <tr>
                     <td>{{ proceso.get_id_proceso() }}</td>
                     <td>{{ proceso.get_nombre_proceso() }}</td>
-                    <td>{{ proceso.get_tamano_proceso() }}</td>
+                    <td>{{ proceso.get_tamano_proceso() - proceso.get_veces_ejecutado()*2 }}</td>
                     <td>{{ proceso.get_prioridad() }}</td>
                     <td>
                         {% for recurso in proceso.get_recursos_necesarios() %}
@@ -51,7 +51,7 @@ Estados de procesos
                 <tr>
                     <td>{{ proceso.get_id_proceso() }}</td>
                     <td>{{ proceso.get_nombre_proceso() }}</td>
-                    <td>{{ proceso.get_tamano_proceso() }}</td>
+                    <td>{{ proceso.get_tamano_proceso() - proceso.get_veces_ejecutado()*2 }}</td>
                     <td>{{ proceso.get_prioridad() }}</td>
                     <td>
                         {% for recurso in proceso.get_recursos_necesarios() %}
@@ -73,7 +73,7 @@ Estados de procesos
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Nombre del Proceso</th>
+                    <th>Nombre</th>
                     <th>Tamaño</th>
                     <th>Prioridad</th>
                     <th>Recursos Asociados</th>
@@ -84,7 +84,7 @@ Estados de procesos
                 <tr>
                     <td>{{ proceso_ejecucion.get_id_proceso() }}</td>
                     <td>{{ proceso_ejecucion.get_nombre_proceso() }}</td>
-                    <td>{{ proceso_ejecucion.get_tamano_proceso() }}</td>
+                    <td>{{ proceso_ejecucion.get_tamano_proceso() - proceso_ejecucion.get_veces_ejecutado()*2 }}</td>
                     <td>{{ proceso_ejecucion.get_prioridad() }}</td>
                     <td>
                         {% for recurso in proceso_ejecucion.get_recursos_necesarios() %}
@@ -108,45 +108,55 @@ Estados de procesos
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Nombre del Proceso</th>
+                    <th>Nombres</th>
                     <th>Recursos Esperado</th>
                 </tr>
             </thead>
             <tbody>
                 {% if bloqueados.DiscoDuro %}
+                {% for nombre, id in bloqueados.DiscoDuro %}
                 <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.DiscoDuro }}</td>
+                    <td>{{ id }}</td>
+                    <td>{{ nombre }}</td>
                     <td>Disco duro</td>
                 </tr>
+                {% endfor %}
                 {% endif %}
                 {% if bloqueados.TarjetaGrafica %}
+                {% for nombre, id in bloqueados.DiscoDuro %}
                 <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.TarjetaGrafica }}</td>
+                    <td>{{ id }}</td>
+                    <td>{{ nombre }}</td>
                     <td>Tarjeta gráfica</td>
                 </tr>
+                {% endfor %}
                 {% endif %}
                 {% if bloqueados.Impresora %}
+                {% for nombre, id in bloqueados.DiscoDuro %}
                 <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.Impresora }}</td>
+                    <td>{{ id }}</td>
+                    <td>{{ nombre }}</td>
                     <td>Impresora</td>
                 </tr>
+                {% endfor %}
                 {% endif %}
                 {% if bloqueados.Archivos %}
+                {% for nombre, id in bloqueados.DiscoDuro %}
                 <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.Archivos }}</td>
+                    <td>{{ id }}</td>
+                    <td>{{ nombre }}</td>
                     <td>Archivos</td>
                 </tr>
+                {% endfor %}
                 {% endif %}
                 {% if bloqueados.Red %}
+                {% for nombre, id in bloqueados.DiscoDuro %}
                 <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.Red }}</td>
+                    <td>{{ id }}</td>
+                    <td>{{ nombre }}</td>
                     <td>Red</td>
                 </tr>
+                {% endfor%}
                 {% endif %}
             </tbody>
         </table>

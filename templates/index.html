@@ -21,6 +21,7 @@
                     <th>Prioridad</th>
                     <th>Recursos en Uso</th>
                     <th>Estado</th>
+                    <th>Ejecutado</th>
                 </tr>
             </thead>
             <tbody>
@@ -38,6 +39,7 @@
                         {% endif %}
                     </td>
                     <td>{{ proceso.get_estado() }}</td>
+                    <td>{{ proceso.get_veces_ejecutado() }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
