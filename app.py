@@ -170,7 +170,7 @@ def ejecutar_proceso():
                     }
                 ]
                 print(f"Proceso {datos_proceso} en ejecución.")
-                buscar_en_memoria()
+                buscar_en_memoria(proceso_ejecucion.get_veces_ejecutado())
     else:
         if cola_prioridad1 and proceso_ejecucion.get_prioridad()==0 and cola_prioridad1[0].get_prioridad()==2:
             expulsar_un_proceso_e_ingresar_otro() # envia el proceso en ejecucion a listo sin descontar el tamano
@@ -182,10 +182,10 @@ def ejecutar_proceso():
     verificar_bloqueados()        
     return redirect(url_for('modelo'))
 
-def buscar_en_memoria():
+def buscar_en_memoria(indice_pagina):
     global proceso_ejecucion
     global auxiliar
-    nombre_pagina_buscada = f"P{proceso_ejecucion.get_id_proceso()[-2:]}{auxiliar}"
+    nombre_pagina_buscada = f"P{proceso_ejecucion.get_id_proceso()[-2:]}{indice_pagina}"
     print(f"Verificando la página {nombre_pagina_buscada}...")
 
     # Verificar si la página está en la memoria

@@ -181,11 +181,33 @@ class Memoria:
                 if self.memoria_virtual[i][j] == pagina:
                     self.memoria_virtual[i][j] = ""
                     print(f"La página {pagina} ha sido eliminada de la memoria virtual")
-                    return
+                    return True
                 
     def politica_de_reemplazo(self, pagina):
+        print("politica de reemplazo")
+        print(f"pagina: {pagina}")
+        
+        aux = int(pagina[2])-2
+        pagina = pagina[0] + pagina[1] + str(aux)
+        print(f"Nueva pagina: {pagina}")
+        
+        for i in range(len(self.memoria_principal)):
+            for j in range(len(self.memoria_principal[i])):
+                if self.memoria_principal[i][j] == pagina:
+                    self.memoria_principal[i][j] = ""
+                    if self.reemplazar_pagina_en_memoria_virtual(pagina):
+                        return True
+                    
+    def reemplazar_pagina_en_memoria_virtual(self, pagina):
+        print("Reemplazando página en memoria virtual...")
+        print("la pagina es", pagina)
         for i in range(len(self.memoria_virtual)):
             for j in range(len(self.memoria_virtual[i])):
-                aux = self.memoria_virtual[i][j]
-                print(aux)
-                return
+                print("valor en el espacio: ", self.memoria_virtual[i][j])
+                if self.memoria_virtual[i][j] == "":
+                    pagina_a_reemplazar = self.memoria_virtual[i][j]
+                    self.memoria_virtual[i][j] = pagina
+                    print(f"Reemplazando la página {pagina_a_reemplazar} por la página {pagina}.")
+                    return
+        
+            
