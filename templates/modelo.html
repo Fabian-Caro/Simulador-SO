@@ -122,8 +122,9 @@ Estados de procesos
                 </tr>
                 {% endfor %}
                 {% endif %}
+
                 {% if bloqueados.TarjetaGrafica %}
-                {% for nombre, id in bloqueados.DiscoDuro %}
+                {% for nombre, id in bloqueados.TarjetaGrafica %}
                 <tr>
                     <td>{{ id }}</td>
                     <td>{{ nombre }}</td>
@@ -131,8 +132,9 @@ Estados de procesos
                 </tr>
                 {% endfor %}
                 {% endif %}
+
                 {% if bloqueados.Impresora %}
-                {% for nombre, id in bloqueados.DiscoDuro %}
+                {% for nombre, id in bloqueados.Impresora %}
                 <tr>
                     <td>{{ id }}</td>
                     <td>{{ nombre }}</td>
@@ -140,8 +142,9 @@ Estados de procesos
                 </tr>
                 {% endfor %}
                 {% endif %}
+
                 {% if bloqueados.Archivos %}
-                {% for nombre, id in bloqueados.DiscoDuro %}
+                {% for nombre, id in bloqueados.Archivos %}
                 <tr>
                     <td>{{ id }}</td>
                     <td>{{ nombre }}</td>
@@ -149,8 +152,9 @@ Estados de procesos
                 </tr>
                 {% endfor %}
                 {% endif %}
+
                 {% if bloqueados.Red %}
-                {% for nombre, id in bloqueados.DiscoDuro %}
+                {% for nombre, id in bloqueados.Red %}
                 <tr>
                     <td>{{ id }}</td>
                     <td>{{ nombre }}</td>

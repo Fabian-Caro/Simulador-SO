@@ -53,6 +53,7 @@
                     <th>Id</th>
                     <th>Nombre</th>
                     <th>Tamaño</th>
+                    <th>Prioridad</th>
                     <th>Recursos</th>
                 </tr>
             </thead>
@@ -62,6 +63,7 @@
                     <td>{{ proceso_ejecucion.get_id_proceso() }}</td>
                     <td>{{ proceso_ejecucion.get_nombre_proceso() }}</td>
                     <td>{{ proceso_ejecucion.get_tamano_proceso() }}</td>
+                    <td>{{ proceso_ejecucion.get_prioridad() }}</td>
                     <td>
                         {% for recurso in proceso_ejecucion.get_recursos_necesarios() %}
                         {{ recurso.get_nombre_recurso() }},
