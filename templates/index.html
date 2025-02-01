@@ -1,21 +1,15 @@
-<!DOCTYPE html>
-<html lang="es-CO">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador modelo de 5 estados</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/stylo.css') }}">
+{% block title %}
+    {{ super() }}
+    Gestión de Procesos
+{% endblock %}
 
-</head>
+{% block header_title %}
+    Gestión de procesos
+{% endblock %}
 
-<body>
-    <header>
-        <h1>Gestión de Procesos</h1>
-        <nav>
-            <a href="{{ url_for('modelo') }}">Menu</a>
-        </nav>
-    </header>
+{% block content %}
     <section id="procesos-existentes">
         <h2>Procesos Creados</h2>
         <table>
@@ -24,89 +18,28 @@
                     <th>ID</th>
                     <th>Nombre</th>
                     <th>Tamaño</th>
+                    <th>Prioridad</th>
                     <th>Recursos en Uso</th>
                     <th>Estado</th>
+                    <th>Ejecutado</th>
                 </tr>
             </thead>
             <tbody>
-                {% for proceso in procesos_listos %}
+                {% for proceso in proceso_creado %}
                 <tr>
                     <td>{{ proceso.get_id_proceso() }}</td>
                     <td>{{ proceso.get_nombre_proceso() }}</td>
                     <td>{{ proceso.get_tamano_proceso() }}</td>
-                    <td>{% if proceso.get_recursos_asignados != 0 %}
-                        {% for recurso in proceso.get_recursos_asignados() %}
+                    <td>{{ proceso.get_prioridad() }}</td>
+                    <td>
+                        {% if proceso.get_recursos_necesarios != 0 %}
+                        {% for recurso in proceso.get_recursos_necesarios() %}
                         {{ recurso.get_nombre_recurso() }},
                         {% endfor %}
                         {% endif %}
                     </td>
-                    <td>Listo</td>
-                </tr>
-                {% endfor %}
-                {% if proceso_ejecucion %}
-                <tr>
-                    <td>{{ proceso_ejecucion.get_id_proceso() }}</td>
-                    <td>{{ proceso_ejecucion.get_nombre_proceso() }}</td>
-                    <td>{{ proceso_ejecucion.get_tamano_proceso() }}</td>
-                    <td>{% for recurso in proceso_ejecucion.get_recursos_asignados() %}
-                        {{ recurso.get_nombre_recurso() }}
-                        {% endfor %}
-                    </td>
-                    <td>Ejecución</td>
-                </tr>
-                {% endif %}
-                {% if bloqueados.DiscoDuro %}
-                <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.DiscoDuro }}</td>
-                    <td>.</td>
-                    <td>.</td>
-                    <td>Bloqueado</td>
-                </tr>
-                {% endif %}
-                {% if bloqueados.TarjetaGrafica %}
-                <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.TarjetaGrafica }}</td>
-                    <td>.</td>
-                    <td>.</td>
-                    <td>Bloqueado</td>
-                </tr>
-                {% endif %}
-                {% if bloqueados.Impresora %}
-                <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.Impresora }}</td>
-                    <td>.</td>
-                    <td>.</td>
-                    <td>Bloqueado</td>
-                </tr>
-                {% endif %}
-                {% if bloqueados.Archivos %}
-                <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.Archivos }}</td>
-                    <td>.</td>
-                    <td>.</td>
-                    <td>Bloqueado</td>
-                </tr>
-                {% endif %}
-                {% if bloqueados.Red %}
-                <tr>
-                    <td>.</td>
-                    <td>{{ bloqueados.Red }}</td>
-                    <td>.</td>
-                    <td>.</td>
-                    <td>Bloqueado</td>
-                </tr>
-                {% endif %}
-                {% for proceso in terminados %}
-                <tr>
-                    <td>{{ proceso.get_id_proceso() }}</td>
-                    <td>{{ proceso.get_nombre_proceso() }}</td>
-                    <td>{{ proceso.get_tamano_proceso() }}</td>
-                    <td></td>
-                    <td>Terminado</td>
+                    <td>{{ proceso.get_estado() }}</td>
+                    <td>{{ proceso.get_veces_ejecutado() }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -120,6 +53,7 @@
                     <th>Id</th>
                     <th>Nombre</th>
                     <th>Tamaño</th>
+                    <th>Prioridad</th>
                     <th>Recursos</th>
                 </tr>
             </thead>
@@ -129,8 +63,9 @@
                     <td>{{ proceso_ejecucion.get_id_proceso() }}</td>
                     <td>{{ proceso_ejecucion.get_nombre_proceso() }}</td>
                     <td>{{ proceso_ejecucion.get_tamano_proceso() }}</td>
+                    <td>{{ proceso_ejecucion.get_prioridad() }}</td>
                     <td>
-                        {% for recurso in proceso_ejecucion.get_recursos_asignados() %}
+                        {% for recurso in proceso_ejecucion.get_recursos_necesarios() %}
                         {{ recurso.get_nombre_recurso() }},
                         {% endfor %}
                     </td>
@@ -159,7 +94,6 @@
                     <td>
                         {% if recurso.get_proceso() %}
                         {{ recurso.get_proceso().get_nombre_proceso() }}
-                        <!-- Aquí se asume que 'proceso' tiene un nombre -->
                         {% else %}
                         No asignado
                         {% endif %}
@@ -169,12 +103,5 @@
             </tbody>
         </table>
     </section>
-    <div class="row">
-        <a href="{{ url_for('modelo') }}">
-            <button>Ir a Modelo de 5 Estados</button>
-        </a>
     </div>
-    </div>
-</body>
-
-</html>
+{% endblock %}

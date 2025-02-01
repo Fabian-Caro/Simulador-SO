@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{{ super()}}
+Creación de Proceso
+{% endblock %}
+
+{% block header_title %}
+Creación de procesos
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            {% include 'form.html' %}
+        </div>
+        <div class="col">
+            <section id="proceso-nuevo">
+                <form action="/a_listos" method="post">
+                    <button id="botonEjecutar" type="submit" class="btn btn-success">Enviar a Listo</button>
+                </form>
+                {% with titulo="Nuevos", procesos=procesos_nuevos %}
+                {% include 'tabla.html' %}
+                {% endwith %}
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

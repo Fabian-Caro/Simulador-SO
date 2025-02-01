@@ -1,178 +1,188 @@
-<!DOCTYPE html>
-<html lang="es-CO">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estados de un proceso</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/stylo.css') }}">
-</head>
+{% block title %}
+{{ super()}}
+Modelo de 5 estados
+{% endblock %}
 
-<body>
-    <header></header>
-    <h1>Estados de Proceso</h1>
-    <form action="/ejecutar_proceso" method="post" style="position: fixed; top: 60px; right: 20px;">
-        <button type="submit" class="btn btn-success">Ejecutar Proceso</button>
-    </form>
-    <nav>
-        <a href="{{ url_for('index') }}">Regresar</a>
-    </nav>
-    </header>
+{% block header_title %}
+Estados de procesos
+{% endblock %}
 
-    <div class="container">
-        <div class="row">
-            <section id="agregar-proceso">
-                    <h1>Nuevo</h1>
-                    <form id="nuevo-proceso-form" action="/crear_proceso" method="post">
-                        <label for="inputId">ID:</label>
-                        <input type="text" id="inputId" name="id" required>
-                        <label for="inputNombre">Nombre:</label>
-                        <input type="text" id="inputNombre" name="nombre" required>
-                        <label for="inputTamano">Tamaño:</label>
-                        <input type="number" id="inputTamano" name="tamano" required>
-                        <label for="inputRecurso">Recursos</label>
-                        {% for recurso in recursos %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="recurso{{ loop.index }}" name="recursos"
-                                value="{{ recurso.get_id_recurso() }}">
-                            <label class="form-check-label" for="recurso{{ loop.index }}">
-                                {{ recurso.get_nombre_recurso() }}
-                                {% if recurso.get_proceso() %}
-                                <span class="text-danger">(En uso: {{ recurso.get_proceso().get_nombre_proceso()
-                                    }})</span>
-                                {% else %}
-                                <span class="text-success">(Disponible)</span>
-                                {% endif %}
-                            </label>
-                        </div>
+{% block content %}
+<div class="container" id="resultado">
+    <section id="proceso-en-listo">
+        <form action="/ejecutar_proceso" method="post">
+            <button id="botonDeEjecucion" type="submit" class="btn btn-success">Ejecutar Procesos</button>
+        </form>
+        <!-- {% with titulo="Listos", procesos=procesos_prioridad1 %}
+        {% include 'tabla.html' %}
+        {% endwith %} -->
+        <h2>Listo</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Tamaño</th>
+                    <th>Prioridad</th>
+                    <th>Recursos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for proceso in procesos_prioridad1 %}
+                <tr>
+                    <td>{{ proceso.get_id_proceso() }}</td>
+                    <td>{{ proceso.get_nombre_proceso() }}</td>
+                    <td>{{ proceso.get_tamano_proceso() - proceso.get_veces_ejecutado()*2 }}</td>
+                    <td>{{ proceso.get_prioridad() }}</td>
+                    <td>
+                        {% for recurso in proceso.get_recursos_necesarios() %}
+                        {% if recurso.get_proceso() == proceso %}
+                        {{ recurso.get_nombre_recurso() }}: Asignado.
+                        {% else %}
+                        {{ recurso.get_nombre_recurso() }}: Necesario.
+                        {% endif %}
                         {% endfor %}
-                        <button type="submit" class="btn btn-primary">Crear</button>
-                    </form>
-                </div>
-            </section>
-        </div>
-        <section id="proceso-en-listo">
-            <h2>Listo</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Tamaño</th>
-                        <th>Recursos</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for proceso in procesos_listos %}
-                    <tr>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% for proceso in procesos_listos %}
+                <tr>
+                    <td>{{ proceso.get_id_proceso() }}</td>
+                    <td>{{ proceso.get_nombre_proceso() }}</td>
+                    <td>{{ proceso.get_tamano_proceso() - proceso.get_veces_ejecutado()*2 }}</td>
+                    <td>{{ proceso.get_prioridad() }}</td>
+                    <td>
+                        {% for recurso in proceso.get_recursos_necesarios() %}
+                        {% if recurso.get_proceso() == proceso %}
+                        {{ recurso.get_nombre_recurso() }}: Asignado.
+                        {% else %}
+                        {{ recurso.get_nombre_recurso() }}: Necesario.
+                        {% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    <section id="proceso-en-ejecucion">
+        <h2>Ejecución</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Tamaño</th>
+                    <th>Prioridad</th>
+                    <th>Recursos Asociados</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if proceso_ejecucion %}
+                <tr>
+                    <td>{{ proceso_ejecucion.get_id_proceso() }}</td>
+                    <td>{{ proceso_ejecucion.get_nombre_proceso() }}</td>
+                    <td>{{ proceso_ejecucion.get_tamano_proceso() - proceso_ejecucion.get_veces_ejecutado()*2 }}</td>
+                    <td>{{ proceso_ejecucion.get_prioridad() }}</td>
+                    <td>
+                        {% for recurso in proceso_ejecucion.get_recursos_necesarios() %}
+                        {% if not recurso.get_proceso() %}
+                        {{ recurso.get_nombre_recurso() }}: Disponible.
+                        {% elif recurso.get_proceso() == proceso_ejecucion %}
+                        {{ recurso.get_nombre_recurso() }}: Asignado.
+                        {% else %}
+                        {{ recurso.get_nombre_recurso() }}: Ocupado.
+                        {% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </section>
+    <section id="proceso-en-bloqueado">
+        <h2>Bloqueados</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombres</th>
+                    <th>Recursos Esperado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if bloqueados.DiscoDuro %}
+                {% for nombre, id in bloqueados.DiscoDuro %}
+                <tr>
+                    <td>{{ id }}</td>
+                    <td>{{ nombre }}</td>
+                    <td>Disco duro</td>
+                </tr>
+                {% endfor %}
+                {% endif %}
 
-                        <td>{{ proceso.get_id_proceso() }}</td>
-                        <td>{{ proceso.get_nombre_proceso() }}</td>
-                        <td>{{ proceso.get_tamano_proceso() }}</td>
-                        <td>{% for recurso in proceso.get_recursos_necesarios() %}
-                            {{ recurso.get_nombre_recurso() }}.
-                            {% endfor %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </section>
-        <section id="proceso-enn-ejecucion">
-            <h2>Ejecución</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre del Proceso</th>
-                        <th>Tamaño</th>
-                        <th>Recursos Asociados</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if proceso_ejecucion %}
-                    <tr>
-                        <td>{{ proceso_ejecucion.get_id_proceso() }}</td>
-                        <td>{{ proceso_ejecucion.get_nombre_proceso() }}</td>
-                        <td>{{ proceso_ejecucion.get_tamano_proceso() }}</td>
-                        <td>{% for recurso in proceso_ejecucion.get_recursos_asignados() %}
-                            {{ recurso.get_nombre_recurso() }}
-                            {% endfor %}
-                        </td>
-                    </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </section>
-        <section id="proceso-en-bloqueado">
-            <h2>Bloqueados</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre del Proceso</th>
-                        <th>Recursos Esperado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if bloqueados.DiscoDuro %}
-                    <tr>
-                        <td>.</td>
-                        <td>{{ bloqueados.DiscoDuro }}</td>
-                        <td>Disco duro</td>
-                    </tr>
-                    {% endif %}
-                    {% if bloqueados.TarjetaGrafica %}
-                    <tr>
-                        <td>.</td>
-                        <td>{{ bloqueados.TarjetaGrafica }}</td>
-                        <td>Tarjeta gráfica</td>
-                    </tr>
-                    {% endif %}
-                    {% if bloqueados.Impresora %}
-                    <tr>
-                        <td>.</td>
-                        <td>{{ bloqueados.Impresora }}</td>
-                        <td>Impresora</td>
-                    </tr>
-                    {% endif %}
-                    {% if bloqueados.Archivos %}
-                    <tr>
-                        <td>.</td>
-                        <td>{{ bloqueados.Archivos }}</td>
-                        <td>Archivos</td>
-                    </tr>
-                    {% endif %}
-                    {% if bloqueados.Red %}
-                    <tr>
-                        <td>.</td>
-                        <td>{{ bloqueados.Red }}</td>
-                        <td>Red</td>
-                    </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </section>
-        <section id="proceso-en-terminado">
-            <h2>Terminado</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for proceso in terminados %}
-                    <tr>
-                        <td>{{ proceso.get_id_proceso() }}</td>
-                        <td>{{ proceso.get_nombre_proceso() }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </section>
-    </div>
-</body>
+                {% if bloqueados.TarjetaGrafica %}
+                {% for nombre, id in bloqueados.TarjetaGrafica %}
+                <tr>
+                    <td>{{ id }}</td>
+                    <td>{{ nombre }}</td>
+                    <td>Tarjeta gráfica</td>
+                </tr>
+                {% endfor %}
+                {% endif %}
 
-</html>
+                {% if bloqueados.Impresora %}
+                {% for nombre, id in bloqueados.Impresora %}
+                <tr>
+                    <td>{{ id }}</td>
+                    <td>{{ nombre }}</td>
+                    <td>Impresora</td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+
+                {% if bloqueados.Archivos %}
+                {% for nombre, id in bloqueados.Archivos %}
+                <tr>
+                    <td>{{ id }}</td>
+                    <td>{{ nombre }}</td>
+                    <td>Archivos</td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+
+                {% if bloqueados.Red %}
+                {% for nombre, id in bloqueados.Red %}
+                <tr>
+                    <td>{{ id }}</td>
+                    <td>{{ nombre }}</td>
+                    <td>Red</td>
+                </tr>
+                {% endfor%}
+                {% endif %}
+            </tbody>
+        </table>
+    </section>
+    <section id="proceso-en-terminado">
+        <h2>Terminado</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for proceso in terminados %}
+                <tr>
+                    <td>{{ proceso.get_id_proceso() }}</td>
+                    <td>{{ proceso.get_nombre_proceso() }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

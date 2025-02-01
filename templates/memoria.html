@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ super()}}
+    Memoria
+{% endblock %}
+
+{% block header_title %}
+    Memoria
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <table class="table table-sm caption-top" style="table-layout: auto; width: auto;">
+                    <caption>Memoria RAM</caption>
+                    <tbody>
+                        {% for i in range(4) %}
+                        <tr>
+                            {% for j in range(4) %}
+                            <td scope="col">
+                                {% if memoria_principal[i][j] != "" %}
+                                    {{ memoria_principal[i][j] }} <!-- Muestra "SO" directamente -->
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col">
+                <table class="table table-sm caption-top" style="table-layout: auto; width: auto;">
+                    <caption>Memoria ROM</caption>
+                    <tbody>
+                        {% for i in range(4) %}
+                        <tr>
+                            {% for j in range(8) %}
+                            <td scope="col">
+                                {% if memoria_virtual[i][j] != "" %}
+                                    {{ memoria_virtual[i][j] }}
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
