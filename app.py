@@ -3,7 +3,8 @@ from modelo.Procesos import Procesos
 from modelo.Recurso import recursos as listaRecursos
 from modelo.Bloqueados import Bloqueados
 from modelo.Memoria import Memoria
-import random
+from modelo.Hilo import Hilo
+import random, math
 
 
 app = Flask(__name__)
@@ -19,6 +20,7 @@ proceso_ejecucion = None
 proceso_bloqueado = None
 terminados = []
 proceso_creado = []
+hilos = []
 auxiliar = 1
 
 @app.route('/', methods=['GET'])
@@ -42,6 +44,7 @@ def index():
 def crear_proceso():
     bloqueados = Bloqueados.bloqueados()
     recursos = listaRecursos
+    global hilos
     
     memoria_disponible = memoria_instance.calcular_memoria_disponible(memoria_instance.memoria_virtual)
     print(f"Memoria disponible: {memoria_disponible} KB")
@@ -79,6 +82,43 @@ def crear_proceso():
 
         nuevo_proceso = Procesos(id_proceso, nombre, tamano, prioridad, recursos_necesarios,"nuevo", 0)
         
+        print(f"Proceso {nuevo_proceso} creado.")
+        
+        i=1
+        tamano_para_hilo = nuevo_proceso.get_tamano_proceso()
+        while i <= math.ceil(nuevo_proceso.get_tamano_proceso()/2):
+            id_hilo=i
+            nombre_hilo=f"Hilo{id_hilo}{nuevo_proceso.get_nombre_proceso()}"
+            
+            if i == math.ceil(nuevo_proceso.get_tamano_proceso()/2) and nuevo_proceso.get_tamano_proceso()%2!=0:
+                tamano_hilo=1
+            else:
+                tamano_hilo=2
+
+            prioridad_hilo=nuevo_proceso.get_prioridad()
+            recursos_necesarios_hilo=nuevo_proceso.get_recursos_necesarios()
+            estado = "Nuevo"
+            veces_ejecutado_hilo = 0
+            nuevo_hilo = Hilo(id_hilo, nombre_hilo, tamano_hilo, prioridad_hilo, recursos_necesarios_hilo, estado, veces_ejecutado_hilo)  
+            datos_hilo = [
+                    
+                    {
+                        "id_hilo": nuevo_hilo.get_id_hilo(),
+                        "nombre_hilo": nuevo_hilo.get_nombre_hilo(),
+                        "tamano_hilo": nuevo_hilo.get_tamano_hilo(),
+                        "prioridad": nuevo_hilo.get_prioridad_hilo(),
+                        ##"recursos_necesarios": [recurso.get_nombre_recurso() for recurso in nuevo_hilo.get_recursos_necesarios_hilo()],
+                        "estado": nuevo_hilo.get_estado_hilo(),
+                        ##"veces_ejecutado": nuevo_hilo.get_veces_ejecutado_hilo()
+                    }
+                ]
+            ##print(f"Hilo {datos_hilo} creado.")
+            hilos.append(nuevo_hilo)
+            print(f"Hilos: {hilos}")
+            print(len(hilos))
+            
+            i+=1
+                            
         if not memoria_instance.memoria_disponible(memoria_instance.memoria_principal):
             flash("No hay espacio disponible en la memoria principal. No se creará el proceso.", "danger")
             return redirect(url_for('crear_proceso'))

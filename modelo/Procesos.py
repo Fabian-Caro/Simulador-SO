@@ -8,7 +8,7 @@ class Procesos:
         self.__prioridad = prioridad
         self.__recursos_necesarios = recursos_necesarios
         self.estado = estado
-        self.__veces_ejecutado = veces_ejecutado;
+        self.__veces_ejecutado = veces_ejecutado
 
     def get_id_proceso(self):
         return self.__id_proceso
