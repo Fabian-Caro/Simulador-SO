@@ -64,14 +64,14 @@ class Hilo:
         self.prioridad_hilo = prioridad_hilo
         
     def get_nombre_recursos(self):
-        return [recurso.get_nombre_recurso() for recurso in self.__recursos_asignados]
+        return [recurso.get_nombre_recurso() for recurso in self.recursos_asignados]
     
     def get_recursos_necesarios_hilo(self):
         # Devuelve una lista, asegúrate de que nunca devuelva None
-        return self.__recursos_necesarios if self.__recursos_necesarios is not None else []
+        return self.recursos_necesarios_hilo if self.recursos_necesarios_hilo is not None else []
     
-    def set_recursos_necesarios_hilo(self, recursos_necesarios):
-        self.__recursos_necesarios = recursos_necesarios
+    def set_recursos_necesarios_hilo(self, recursos_necesarios_hilo):
+        self.recursos_necesarios_hilo = recursos_necesarios_hilo
     
     def get_estado_hilo(self):
         return self.estado_hilo
@@ -80,7 +80,7 @@ class Hilo:
         self.estado = estado_hilo
         
     def get_veces_ejecutado_hilo(self):
-        return self.__veces_ejecutado_hilo
+        return self.veces_ejecutado_hilo
     
     def set_veces_ejecutado_hilo(self,veces_ejecutado_hilo):
-        self.__veces_ejecutado_hilo = veces_ejecutado_hilo
+        self.veces_ejecutado_hilo = veces_ejecutado_hilo

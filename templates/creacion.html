@@ -20,7 +20,7 @@ Creación de procesos
                 <form action="/a_listos" method="post">
                     <button id="botonEjecutar" type="submit" class="btn btn-success">Enviar a Listo</button>
                 </form>
-                {% with titulo="Nuevos", procesos=procesos_nuevos %}
+                {% with titulo="Nuevos", hilos=hilos, procesos=procesos_nuevos %}
                 {% include 'tabla.html' %}
                 {% endwith %}
             </section>

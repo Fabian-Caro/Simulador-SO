@@ -45,6 +45,7 @@ def crear_proceso():
     bloqueados = Bloqueados.bloqueados()
     recursos = listaRecursos
     global hilos
+    global auxiliar
     
     memoria_disponible = memoria_instance.calcular_memoria_disponible(memoria_instance.memoria_virtual)
     print(f"Memoria disponible: {memoria_disponible} KB")
@@ -85,10 +86,11 @@ def crear_proceso():
         print(f"Proceso {nuevo_proceso} creado.")
         
         i=1
-        tamano_para_hilo = nuevo_proceso.get_tamano_proceso()
+        recursos_disponibles = nuevo_proceso.get_recursos_necesarios()  # Lista de recursos
+        recursos_asignados = []  # Para rastrear los recursos ya usados
         while i <= math.ceil(nuevo_proceso.get_tamano_proceso()/2):
-            id_hilo=i
-            nombre_hilo=f"Hilo{id_hilo}{nuevo_proceso.get_nombre_proceso()}"
+            id_hilo=auxiliar
+            nombre_hilo=f"Hilo{i}{nuevo_proceso.get_nombre_proceso()}"
             
             if i == math.ceil(nuevo_proceso.get_tamano_proceso()/2) and nuevo_proceso.get_tamano_proceso()%2!=0:
                 tamano_hilo=1
@@ -96,27 +98,24 @@ def crear_proceso():
                 tamano_hilo=2
 
             prioridad_hilo=nuevo_proceso.get_prioridad()
-            recursos_necesarios_hilo=nuevo_proceso.get_recursos_necesarios()
+            
+            if i - 1 < len(recursos_disponibles):
+                recursos_necesarios_hilo = [recursos_disponibles[i - 1]]  # Convertir en lista
+                recursos_asignados.append(recursos_disponibles[i - 1])  # Marcarlo como asignado
+            else:
+                recursos_necesarios_hilo = []  # Si ya no hay recursos, lista vacía
+                
             estado = "Nuevo"
             veces_ejecutado_hilo = 0
-            nuevo_hilo = Hilo(id_hilo, nombre_hilo, tamano_hilo, prioridad_hilo, recursos_necesarios_hilo, estado, veces_ejecutado_hilo)  
-            datos_hilo = [
-                    
-                    {
-                        "id_hilo": nuevo_hilo.get_id_hilo(),
-                        "nombre_hilo": nuevo_hilo.get_nombre_hilo(),
-                        "tamano_hilo": nuevo_hilo.get_tamano_hilo(),
-                        "prioridad": nuevo_hilo.get_prioridad_hilo(),
-                        ##"recursos_necesarios": [recurso.get_nombre_recurso() for recurso in nuevo_hilo.get_recursos_necesarios_hilo()],
-                        "estado": nuevo_hilo.get_estado_hilo(),
-                        ##"veces_ejecutado": nuevo_hilo.get_veces_ejecutado_hilo()
-                    }
-                ]
-            ##print(f"Hilo {datos_hilo} creado.")
-            hilos.append(nuevo_hilo)
-            print(f"Hilos: {hilos}")
-            print(len(hilos))
+            nuevo_hilo = Hilo(id_hilo, nombre_hilo, tamano_hilo, prioridad_hilo, recursos_necesarios_hilo, estado, veces_ejecutado_hilo)        
             
+            if i == math.ceil(nuevo_proceso.get_tamano_proceso() / 2):
+                recursos_sobrantes = [r for r in recursos_disponibles if r not in recursos_asignados]
+                nuevo_hilo.set_recursos_necesarios_hilo(nuevo_hilo.get_recursos_necesarios_hilo() + recursos_sobrantes)
+
+            hilos.append(nuevo_hilo)
+
+            auxiliar += 1
             i+=1
                             
         if not memoria_instance.memoria_disponible(memoria_instance.memoria_principal):
@@ -142,7 +141,9 @@ def crear_proceso():
         proceso_creado = proceso_creado,
         terminados=terminados,
         bloqueados=bloqueados,
-        max_tamano = max_tamano)  # Devuelve la vista cuando es un GET)
+        max_tamano = max_tamano,
+        hilos = hilos,
+        )  # Devuelve la vista cuando es un GET
 
 @app.route('/modelo', methods=['GET', 'POST'])
 def modelo():
@@ -161,7 +162,9 @@ def modelo():
         recursos=recursos, 
         proceso_creado = proceso_creado,
         terminados=terminados,
-        bloqueados=bloqueados)  # Devuelve la vista cuando es un GET)
+        bloqueados=bloqueados,
+        hilos_listos = cola_listos,
+        )  # Devuelve la vista cuando es un GET
 
 @app.route('/memoria', methods=['GET'])
 def memoria():
@@ -314,16 +317,27 @@ def de_listos_a_ejecucion():
         print("Error: No se pudo asignar un proceso a ejecución.")
 
 def de_nuevo_a_listo():
-    while cola_nuevos:
-        proceso_nuevo = cola_nuevos.pop(0)
-        proceso_nuevo.set_estado("listo")
-        if proceso_nuevo.get_prioridad()==0:
-            cola_listos.append(proceso_nuevo)
-        elif proceso_nuevo.get_prioridad()==1:
-            cola_prioridad1.append(proceso_nuevo)
+    while hilos:
+        hilo_nuevo = hilos.pop(0)
+        hilo_nuevo.set_estado_hilo("Listo")
+        
+        if hilo_nuevo.get_prioridad_hilo() == 0:
+            cola_listos.append(hilo_nuevo)
+        elif hilo_nuevo.get_prioridad_hilo() == 1:
+            cola_prioridad1.append(hilo_nuevo)
         else:
-            cola_prioridad1.append(proceso_nuevo)
-        # print(f"Proceso {proceso_nuevo.get_id_proceso()} movido a cola de listos.")
+            cola_prioridad1.append(hilo_nuevo)
+    
+    # while cola_nuevos:
+    #     proceso_nuevo = cola_nuevos.pop(0)
+    #     proceso_nuevo.set_estado("listo")
+    #     if proceso_nuevo.get_prioridad()==0:
+    #         cola_listos.append(proceso_nuevo)
+    #     elif proceso_nuevo.get_prioridad()==1:
+    #         cola_prioridad1.append(proceso_nuevo)
+    #     else:
+    #         cola_prioridad1.append(proceso_nuevo)
+    #     # print(f"Proceso {proceso_nuevo.get_id_proceso()} movido a cola de listos.")
 
 def romper_interbloqueo():
     for i in Bloqueados.recursos_interbloqueos(Bloqueados.interbloqueados,cola_listos):

@@ -27,6 +27,27 @@ Estados de procesos
                 </tr>
             </thead>
             <tbody>
+                {% for hilo in hilos_listos %}
+                <tr>
+        
+                    <td>{{ hilo.get_id_hilo() }}</td>
+                    <td>{{ hilo.get_nombre_hilo() }}</td>
+                    <td>{{ hilo.get_tamano_hilo() }}</td>
+                    <td>{{ hilo.get_prioridad_hilo() }}</td>
+                    <td>
+                    {% for recurso in hilo.get_recursos_necesarios_hilo() %}
+                    {% if hilo.get_recursos_necesarios_hilo() == hilo%}
+                    {{ recurso.get_nombre_recurso() }}: Asignado.
+                    {% else %}
+                    {{ recurso.get_nombre_recurso() }}: Necesario.
+                    {% endif %}
+                    {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {#
+            <tbody>
                 {% for proceso in procesos_prioridad1 %}
                 <tr>
                     <td>{{ proceso.get_id_proceso() }}</td>
@@ -62,6 +83,7 @@ Estados de procesos
                 </tr>
                 {% endfor %}
             </tbody>
+            #}
         </table>
     </section>
     <section id="proceso-en-ejecucion">
