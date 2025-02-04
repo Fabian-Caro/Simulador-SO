@@ -11,6 +11,7 @@ app.secret_key = '1234'
 
 memoria_instance = Memoria()
 
+procesos_creados = []
 cola_nuevos = []
 cola_listos = []
 cola_prioridad1 = []
@@ -56,6 +57,12 @@ def crear_proceso():
 
         id_proceso = request.form.get('id')
         nombre = request.form.get('nombre')
+        
+        for proceso in procesos_creados:
+            if proceso.get_nombre_proceso() == nombre:
+                flash("El proceso necesita un nombre distinto", "danger")
+                return redirect(url_for('crear_proceso'))
+        
         tamano = int(request.form.get('tamano'))
         
         if tamano > max_tamano:
@@ -83,6 +90,8 @@ def crear_proceso():
             flash("No hay espacio disponible en la memoria principal. No se creará el proceso.", "danger")
             return redirect(url_for('crear_proceso'))
         
+        
+        procesos_creados.append(nuevo_proceso)
         cola_nuevos.append(nuevo_proceso)
         proceso_creado.append(nuevo_proceso)
         agregar_a_memoria(nuevo_proceso)
