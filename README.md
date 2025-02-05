@@ -1,4 +1,4 @@
 # Simulador-S.O.
-# Donghee Jo
-# Caro Fabian
-# Jimenez Sarah
+* Donghee Jo
+* Caro Fabian
+* Jimenez Sarah
