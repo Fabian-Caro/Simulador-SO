@@ -11,8 +11,29 @@
     </thead>
     <tbody>
         {% for proceso in procesos %}
-        <tr>
+        
+            {% for hilo in proceso.get_hilos() %}
+                <tr>
+                    <td>{{ hilo.get_id() }}</td>
+                    <td>{{ hilo.get_nombre() }} </td>
+                    <td>{{ hilo.get_tamano() }} </td>
+                    <td>{{ hilo.get_prioridad() }} </td>
+                    <td>
+                        {% for recurso in hilo.get_recursos_necesarios() %}
+                        {% if recurso.get_proceso() == proceso %}
+                        {{ recurso.get_nombre_recurso() }}: Asignado.
+                        {% else %}
+                        {{ recurso.get_nombre_recurso() }}: Necesario.
+                        {% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+            {% endfor %}
 
+        {% endfor %}
+
+        {% for proceso in procesos %}
+        <tr>
             <td>{{ proceso.get_id_proceso() }}</td>
             <td>{{ proceso.get_nombre_proceso() }}</td>
             <td>{{ proceso.get_tamano_proceso() }}</td>
