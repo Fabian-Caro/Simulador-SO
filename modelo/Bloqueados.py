@@ -17,13 +17,33 @@ class Bloqueados(object):
     @staticmethod
     def bloqueados():
         return {
-            'DiscoDuro': [(proceso.get_nombre_proceso(), proceso.get_id_proceso()) for proceso in Bloqueados.recurso1],
-            'TarjetaGrafica': [(proceso.get_nombre_proceso(), proceso.get_id_proceso()) for proceso in Bloqueados.recurso2],
-            'Impresora': [(proceso.get_nombre_proceso(), proceso.get_id_proceso()) for proceso in Bloqueados.recurso3],
-            'Archivos': [(proceso.get_nombre_proceso(), proceso.get_id_proceso()) for proceso in Bloqueados.recurso4],
-            'Red': [(proceso.get_nombre_proceso(), proceso.get_id_proceso()) for proceso in Bloqueados.recurso5]
+            'DiscoDuro': [
+                (proceso.get_nombre_proceso(), proceso.get_id_proceso(), hilo.get_id(), hilo.get_nombre())  
+                for proceso in Bloqueados.recurso1  
+                for hilo in proceso.get_hilos()  # 🔹 Desglosar hilos individualmente
+            ],
+            'TarjetaGrafica': [
+                (proceso.get_nombre_proceso(), proceso.get_id_proceso(), hilo.get_id(), hilo.get_nombre())  
+                for proceso in Bloqueados.recurso2  
+                for hilo in proceso.get_hilos()
+            ],
+            'Impresora': [
+                (proceso.get_nombre_proceso(), proceso.get_id_proceso(), hilo.get_id(), hilo.get_nombre())  
+                for proceso in Bloqueados.recurso3  
+                for hilo in proceso.get_hilos()
+            ],
+            'Archivos': [
+                (proceso.get_nombre_proceso(), proceso.get_id_proceso(), hilo.get_id(), hilo.get_nombre())  
+                for proceso in Bloqueados.recurso4  
+                for hilo in proceso.get_hilos()
+            ],
+            'Red': [
+                (proceso.get_nombre_proceso(), proceso.get_id_proceso(), hilo.get_id(), hilo.get_nombre())  
+                for proceso in Bloqueados.recurso5  
+                for hilo in proceso.get_hilos()
+            ]
         }
-    
+
     @staticmethod
     def enviar_a_cola_bloqueados(recurso, proceso):
         

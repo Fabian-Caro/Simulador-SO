@@ -1,10 +1,14 @@
+{% if cola_listos | length == 0 %}
 <section id="agregar-proceso">
+{% else %}
+<section id="agregar-proceso" style="display: none;">
+{% endif %}
     <h1>Nuevo</h1>
     <form id="nuevo-proceso-form" action="/crear_proceso" method="post">
         <div class="row">
             <div class="col-md-2">
                 <label for="inputId">ID:</label>
-                <input type="number" id="inputId" name="id" value="{{ siguiente_id }}" min="{{ siguiente_id }}" max="10"
+                <input type="number" id="inputId" name="id" value="{{ siguiente_id }}" min="{{ siguiente_id }}"
                     required readonly class="form-control">
             </div>
             <div class="col-md-8">
