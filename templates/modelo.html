@@ -54,7 +54,7 @@ Estados de procesos
                         <td>{{ hilo.get_prioridad() }} </td>
                         <td>
                             {% for recurso in hilo.get_recursos_necesarios() %}
-                            {% if recurso.get_proceso() == proceso %}
+                            {% if recurso.get_proceso() == hilo.get_proceso() %}
                             {{ recurso.get_nombre_recurso() }}: Asignado.
                             {% else %}
                             {{ recurso.get_nombre_recurso() }}: Necesario.
@@ -116,26 +116,27 @@ Estados de procesos
                 </tr>
             </thead>
             <tbody>
+                
                 {% if proceso_ejecucion %}
                     <!--hilos-->
                     {% if hilo_ejecucion %}
-                    <tr>
-                        <td>{{ hilo_ejecucion.get_id() }}</td>
-                        <td>{{ hilo_ejecucion.get_nombre() }}</td>
-                        <td>{{ hilo_ejecucion.get_tamano() - hilo_ejecucion.get_veces_ejecutado() }}</td>
-                        <td>{{ hilo_ejecucion.get_prioridad() }}</td>
-                        <td>
-                            {% for recurso in hilo_ejecucion.get_recursos_necesarios() %}
-                            {% if not recurso.get_proceso() %}
-                            {{ recurso.get_nombre_recurso() }}: Disponible.
-                            {% elif recurso.get_proceso() == hilo_ejecucion %}
-                            {{ recurso.get_nombre_recurso() }}: Asignado.
-                            {% else %}
-                            {{ recurso.get_nombre_recurso() }}: Ocupado.
-                            {% endif %}
-                            {% endfor %}
-                        </td>
-                    </tr>
+                        <tr>
+                            <td>{{ hilo_ejecucion.get_id() }}</td>
+                            <td>{{ hilo_ejecucion.get_nombre() }}</td>
+                            <td>{{ hilo_ejecucion.get_tamano() - hilo_ejecucion.get_veces_ejecutado() }}</td>
+                            <td>{{ hilo_ejecucion.get_prioridad() }}</td>
+                            <td>
+                                {% for recurso in hilo_ejecucion.get_recursos_necesarios() %}
+                                {% if not recurso.get_proceso() %}
+                                {{ recurso.get_nombre_recurso() }}: Disponible.
+                                {% elif recurso.get_proceso() == hilo_ejecucion %}
+                                {{ recurso.get_nombre_recurso() }}: Asignado.
+                                {% else %}
+                                {{ recurso.get_nombre_recurso() }}: Ocupado.
+                                {% endif %}
+                                {% endfor %}
+                            </td>
+                        </tr>
                     {% endif %}
                 <!--procesos-->
                 <tr>
@@ -171,50 +172,50 @@ Estados de procesos
             </thead>
             <tbody>
                 {% if bloqueados.DiscoDuro %}
-                {% for nombre, id in bloqueados.DiscoDuro %}
+                {% for nombre, id, id_hilo, nombre_hilo in bloqueados.DiscoDuro %}
                 <tr>
-                    <td>{{ id }}</td>
-                    <td>{{ nombre }}</td>
+                    <td>{{ id_hilo }}</td>
+                    <td>{{ nombre_hilo }}</td>
                     <td>Disco duro</td>
                 </tr>
                 {% endfor %}
                 {% endif %}
 
                 {% if bloqueados.TarjetaGrafica %}
-                {% for nombre, id in bloqueados.TarjetaGrafica %}
+                {% for nombre, id, id_hilo, nombre_hilo in bloqueados.TarjetaGrafica %}
                 <tr>
-                    <td>{{ id }}</td>
-                    <td>{{ nombre }}</td>
+                    <td>{{ id_hilo }}</td>
+                    <td>{{ nombre_hilo }}</td>
                     <td>Tarjeta gráfica</td>
                 </tr>
                 {% endfor %}
                 {% endif %}
 
                 {% if bloqueados.Impresora %}
-                {% for nombre, id in bloqueados.Impresora %}
+                {% for nombre, id, id_hilo, nombre_hilo in bloqueados.Impresora %}
                 <tr>
-                    <td>{{ id }}</td>
-                    <td>{{ nombre }}</td>
+                    <td>{{ id_hilo }}</td>
+                    <td>{{ nombre_hilo }}</td>
                     <td>Impresora</td>
                 </tr>
                 {% endfor %}
                 {% endif %}
 
                 {% if bloqueados.Archivos %}
-                {% for nombre, id in bloqueados.Archivos %}
+                {% for nombre, id, id_hilo, nombre_hilo in bloqueados.Archivos %}
                 <tr>
-                    <td>{{ id }}</td>
-                    <td>{{ nombre }}</td>
+                    <td>{{ id_hilo }}</td>
+                    <td>{{ nombre_hilo }}</td>
                     <td>Archivos</td>
                 </tr>
                 {% endfor %}
                 {% endif %}
 
                 {% if bloqueados.Red %}
-                {% for nombre, id in bloqueados.Red %}
+                {% for nombre, id, id_hilo, nombre_hilo in bloqueados.Red %}
                 <tr>
-                    <td>{{ id }}</td>
-                    <td>{{ nombre }}</td>
+                    <td>{{ id_hilo }}</td>
+                    <td>{{ nombre_hilo }}</td>
                     <td>Red</td>
                 </tr>
                 {% endfor%}

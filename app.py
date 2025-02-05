@@ -243,7 +243,7 @@ def de_ejecucion_a_listos():
     recursos_liberados = proceso_ejecucion.liberar_recursos_L()
     recursos_necesarios = proceso_ejecucion.get_recursos_necesarios()
     proceso_ejecucion.set_estado("listo")
-    hilo_ejecucion.set_estado("listo")
+    # hilo_ejecucion.set_estado("listo")
     if proceso_ejecucion.get_prioridad()==0:
         cola_listos.append(proceso_ejecucion)
         hilos_listos.append(hilo_ejecucion)
@@ -263,13 +263,20 @@ def a_listos():
     return redirect(url_for('modelo'))
 
 def de_ejecucion_a_terminados():
+    global hilo_ejecucion
     proceso_ejecucion.set_estado("terminado")
     
     for hilo in proceso_ejecucion.get_hilos():
         hilo.set_estado("terminado")
-        hilo_ejecucion.set_estado("terminado")
         hilos_terminados.append(hilo)
         
+        if hilo in hilos_listos:
+            hilos_listos.remove(hilo)
+        if hilo in hilos_con_prioridad:
+            hilos_con_prioridad.remove(hilo)
+            
+        
+    hilo_ejecucion = None
     terminados.append(proceso_ejecucion)
     memoria_instance.limpiar_memoria(proceso_ejecucion)
     proceso_ejecucion.liberar_todos_recursos()
@@ -283,10 +290,17 @@ def de_listos_a_ejecucion():
     
     if cola_prioridad1:
         proceso_ejecucion = cola_prioridad1.pop(0)
+        hilos_del_proceso = [hilos for hilos in hilos_con_prioridad if hilos.get_proceso() == proceso_ejecucion]
+        
+        if hilos_del_proceso:
+            hilo_ejecucion = hilos_del_proceso.pop(0)
+            hilos_con_prioridad.remove(hilo_ejecucion)
+            hilo_ejecucion.set_estado("ejecucion")
+            
+        else:
+            hilo_ejecucion = None
     elif cola_listos:
         proceso_ejecucion = cola_listos.pop(0)
-        
-    if proceso_ejecucion:
         hilos_del_proceso = [hilos for hilos in hilos_listos if hilos.get_proceso() == proceso_ejecucion]
         
         if hilos_del_proceso:
@@ -296,7 +310,7 @@ def de_listos_a_ejecucion():
             
         else:
             hilo_ejecucion = None
-            
+        
     else:
         print("Error: No se pudo asignar un proceso a ejecución.")
 
