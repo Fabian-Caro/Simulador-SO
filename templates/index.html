@@ -18,6 +18,7 @@
                     <th>ID</th>
                     <th>Nombre</th>
                     <th>Tamaño</th>
+                    <th>Hilos</th>
                     <th>Prioridad</th>
                     <th>Recursos en Uso</th>
                     <th>Estado</th>
@@ -30,6 +31,7 @@
                     <td>{{ proceso.get_id_proceso() }}</td>
                     <td>{{ proceso.get_nombre_proceso() }}</td>
                     <td>{{ proceso.get_tamano_proceso() }}</td>
+                    <td>{{ proceso.get_hilos() | length }}</td>
                     <td>{{ proceso.get_prioridad() }}</td>
                     <td>
                         {% if proceso.get_recursos_necesarios != 0 %}

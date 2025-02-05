@@ -3,6 +3,7 @@ from modelo.Procesos import Procesos
 from modelo.Recurso import recursos as listaRecursos
 from modelo.Bloqueados import Bloqueados
 from modelo.Memoria import Memoria
+from modelo.Hilo import Hilo
 import random
 
 
@@ -14,11 +15,15 @@ memoria_instance = Memoria()
 procesos_creados = []
 cola_nuevos = []
 cola_listos = []
+hilos_listos = []
+hilos_con_prioridad = []
 cola_prioridad1 = []
 cola_bloqueados = []
 proceso_ejecucion = None
+hilo_ejecucion: Hilo = None
 proceso_bloqueado = None
 terminados = []
+hilos_terminados = []
 proceso_creado = []
 auxiliar = 1
 
@@ -44,16 +49,19 @@ def crear_proceso():
     bloqueados = Bloqueados.bloqueados()
     recursos = listaRecursos
     
-    memoria_disponible = memoria_instance.calcular_memoria_disponible(memoria_instance.memoria_virtual)
-    print(f"Memoria disponible: {memoria_disponible} KB")
+    # memoria_disponible = memoria_instance.calcular_memoria_disponible(memoria_instance.memoria_virtual)
+    # print(f"Memoria disponible: {memoria_disponible} KB")
     
-    max_tamano = 13
-    print(f"Tamaño máximo de proceso: {max_tamano} KB")
+    max_tamano = 10
+    # print(f"Tamaño máximo de proceso: {max_tamano} KB")
     
     siguiente_id = id_autoincremental()
 
     if request.method == 'POST':
-        global proceso_ejecucion
+        
+        if not memoria_instance.memoria_disponible(memoria_instance.memoria_principal):
+            flash("No hay espacio disponible en la memoria principal. No se creará el proceso.", "danger")
+            return redirect(url_for('crear_proceso'))
 
         id_proceso = request.form.get('id')
         nombre = request.form.get('nombre')
@@ -82,15 +90,11 @@ def crear_proceso():
 
         print(f"ID: {id_proceso}, Nombre: {nombre}, Tamaño: {tamano}, prioridad: {prioridad} veces ejecutado: 0")
         for recurso in recursos:
-            print(f"Recursos: {recurso}")
+           print(f"Recursos: {recurso}")
 
-        nuevo_proceso = Procesos(id_proceso, nombre, tamano, prioridad, recursos_necesarios,"nuevo", 0)
+        nuevo_proceso = Procesos(id_proceso, nombre, tamano, prioridad, recursos_necesarios,"nuevo", 0, 0)
         
-        if not memoria_instance.memoria_disponible(memoria_instance.memoria_principal):
-            flash("No hay espacio disponible en la memoria principal. No se creará el proceso.", "danger")
-            return redirect(url_for('crear_proceso'))
-        
-        
+        nuevo_proceso.set_hilos(Hilo.crear_hilos(nuevo_proceso))
         procesos_creados.append(nuevo_proceso)
         cola_nuevos.append(nuevo_proceso)
         proceso_creado.append(nuevo_proceso)
@@ -103,15 +107,12 @@ def crear_proceso():
         'creacion.html', 
         siguiente_id = siguiente_id,        
         procesos_nuevos=cola_nuevos,
-        procesos_listos=cola_listos, 
-        procesos_prioridad1 = cola_prioridad1,
-        proceso_ejecucion=proceso_ejecucion, 
-        proceso_bloqueado=proceso_bloqueado, 
         recursos=recursos, 
         proceso_creado = proceso_creado,
-        terminados=terminados,
         bloqueados=bloqueados,
-        max_tamano = max_tamano)  # Devuelve la vista cuando es un GET)
+        max_tamano = max_tamano,
+        cola_listos = cola_listos,
+        )  # Devuelve la vista cuando es un GET
 
 @app.route('/modelo', methods=['GET', 'POST'])
 def modelo():
@@ -130,7 +131,12 @@ def modelo():
         recursos=recursos, 
         proceso_creado = proceso_creado,
         terminados=terminados,
-        bloqueados=bloqueados)  # Devuelve la vista cuando es un GET)
+        bloqueados=bloqueados,
+        cola_listos = cola_listos,
+        hilos_listos = hilos_listos,
+        hilos_con_prioridad = hilos_con_prioridad,
+        hilo_ejecucion = hilo_ejecucion,
+        )  # Devuelve la vista cuando es un GET)
 
 @app.route('/memoria', methods=['GET'])
 def memoria():
@@ -156,7 +162,9 @@ def agregar_a_memoria(nuevo_proceso):
 @app.route('/ejecutar_proceso', methods=['POST'])
 def ejecutar_proceso():
     global proceso_ejecucion
+    global hilo_ejecucion
     de_nuevo_a_listo()
+     
     if not proceso_ejecucion:
         if Bloqueados.interbloqueados:
             romper_interbloqueo()
@@ -165,20 +173,10 @@ def ejecutar_proceso():
             
             if proceso_ejecucion:
                 proceso_ejecucion.set_veces_ejecutado(proceso_ejecucion.get_veces_ejecutado() + 1)
-                datos_proceso = [
-                    
-                    {
-                        "id_proceso": proceso_ejecucion.get_id_proceso(),
-                        "nombre_proceso": proceso_ejecucion.get_nombre_proceso(),
-                        "tamano_proceso": proceso_ejecucion.get_tamano_proceso(),
-                        "prioridad": proceso_ejecucion.get_prioridad(),
-                        ##"recursos_asignados": proceso_ejecucion.get_nombre_recursos(),
-                        "recursos_necesarios": [recurso.get_nombre_recurso() for recurso in proceso_ejecucion.get_recursos_necesarios()],
-                        "estado": proceso_ejecucion.get_estado(),
-                        "veces_ejecutado": proceso_ejecucion.get_veces_ejecutado()
-                    }
-                ]
-                print(f"Proceso {datos_proceso} en ejecución.")
+                
+                if hilo_ejecucion:
+                    hilo_ejecucion.set_veces_ejecutado(hilo_ejecucion.get_veces_ejecutado() + 1)
+
                 buscar_en_memoria(proceso_ejecucion.get_veces_ejecutado())
     else:
         if cola_prioridad1 and proceso_ejecucion.get_prioridad()==0 and cola_prioridad1[0].get_prioridad()==2:
@@ -223,6 +221,7 @@ def buscar_en_memoria(indice_pagina):
 
 def enviar_a_listo_o_bloqueado_o_terminado():
     global proceso_ejecucion
+    global hilo_ejecucion
 
     no_pasa_a_bloqueados = True
     
@@ -231,7 +230,7 @@ def enviar_a_listo_o_bloqueado_o_terminado():
     
     if no_pasa_a_bloqueados:
         tam_proceso = proceso_ejecucion.get_tamano_proceso()
-        tam_proceso = tam_proceso - proceso_ejecucion.get_veces_ejecutado()*2
+        tam_proceso = tam_proceso - proceso_ejecucion.get_veces_ejecutado()
         if int (tam_proceso) > 0:
             de_ejecucion_a_listos()
         else:
@@ -244,10 +243,13 @@ def de_ejecucion_a_listos():
     recursos_liberados = proceso_ejecucion.liberar_recursos_L()
     recursos_necesarios = proceso_ejecucion.get_recursos_necesarios()
     proceso_ejecucion.set_estado("listo")
+    hilo_ejecucion.set_estado("listo")
     if proceso_ejecucion.get_prioridad()==0:
         cola_listos.append(proceso_ejecucion)
+        hilos_listos.append(hilo_ejecucion)
     else:
         cola_prioridad1.append(proceso_ejecucion)
+        hilos_con_prioridad.append(hilo_ejecucion)
 
 def de_ejecucion_a_bloqueado(id_recursos):
     proceso_ejecucion.liberar_recursos_B()
@@ -262,12 +264,19 @@ def a_listos():
 
 def de_ejecucion_a_terminados():
     proceso_ejecucion.set_estado("terminado")
+    
+    for hilo in proceso_ejecucion.get_hilos():
+        hilo.set_estado("terminado")
+        hilo_ejecucion.set_estado("terminado")
+        hilos_terminados.append(hilo)
+        
     terminados.append(proceso_ejecucion)
     memoria_instance.limpiar_memoria(proceso_ejecucion)
     proceso_ejecucion.liberar_todos_recursos()
 
 def de_listos_a_ejecucion():
     global proceso_ejecucion
+    global hilo_ejecucion
     
     if not cola_prioridad1 and not cola_listos:
         return
@@ -276,23 +285,41 @@ def de_listos_a_ejecucion():
         proceso_ejecucion = cola_prioridad1.pop(0)
     elif cola_listos:
         proceso_ejecucion = cola_listos.pop(0)
-    
+        
     if proceso_ejecucion:
-        proceso_ejecucion.set_estado("ejecucion")
+        hilos_del_proceso = [hilos for hilos in hilos_listos if hilos.get_proceso() == proceso_ejecucion]
+        
+        if hilos_del_proceso:
+            hilo_ejecucion = hilos_del_proceso.pop(0)
+            hilos_listos.remove(hilo_ejecucion)
+            hilo_ejecucion.set_estado("ejecucion")
+            
+        else:
+            hilo_ejecucion = None
+            
     else:
         print("Error: No se pudo asignar un proceso a ejecución.")
 
 def de_nuevo_a_listo():
+                    
     while cola_nuevos:
         proceso_nuevo = cola_nuevos.pop(0)
         proceso_nuevo.set_estado("listo")
         if proceso_nuevo.get_prioridad()==0:
             cola_listos.append(proceso_nuevo)
-        elif proceso_nuevo.get_prioridad()==1:
-            cola_prioridad1.append(proceso_nuevo)
+
         else:
             cola_prioridad1.append(proceso_nuevo)
-        # print(f"Proceso {proceso_nuevo.get_id_proceso()} movido a cola de listos.")
+            
+        for hilo in proceso_nuevo.get_hilos():
+            hilo_nuevo = hilo
+            hilo_nuevo.set_estado("listo")
+            
+            if hilo_nuevo.get_prioridad() == 0:
+                hilos_listos.append(hilo_nuevo)
+                
+            else:
+                hilos_con_prioridad.append(hilo_nuevo)
 
 def romper_interbloqueo():
     for i in Bloqueados.recursos_interbloqueos(Bloqueados.interbloqueados,cola_listos):
